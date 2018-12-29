@@ -1,4 +1,4 @@
-# BitNotify
+# BitOk
 Simple telegram bot. Notifies about changes in BitCoin transaction confirmations
 
 ## Args

@@ -22,12 +22,12 @@ import com.bot4s.telegram.api
 import com.bot4s.telegram.clients.ScalajHttpClient
 import com.bot4s.telegram.methods.{Request, SendMessage}
 import com.bot4s.telegram.models.Message
-import com.github.telegram_bots.bitnotify._
+import com.github.telegram_bots.bitok._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.estatico.newtype.macros.newtype
 
-package object bitnotify extends Extractors with Data with Implementation {
+package object bitok extends Extractors with Data with Implementation {
   @newtype case class BotToken(repr: String)
 
   @newtype case class TxId(repr: String)
@@ -231,7 +231,7 @@ sealed trait Implementation { self: Data with Extractors =>
     }
   }
 
-  object BitNotify {
+  object BitOk {
     def start[F[_]: ContextShift: Timer, M[_]](cfg: Config)(
         implicit C: ConcurrentEffect[F],
         P: Parallel[F, M],

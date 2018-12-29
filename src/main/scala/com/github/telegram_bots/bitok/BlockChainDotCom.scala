@@ -1,4 +1,4 @@
-package com.github.telegram_bots.bitnotify
+package com.github.telegram_bots.bitok
 
 import scala.collection.JavaConverters._
 import scala.util.matching.Regex

@@ -1,6 +1,6 @@
 import Dependencies._
 
-name         := "BitNotify"
+name         := "BitOk"
 organization := "telegram-bots"
 version      := "0.0.1"
 scalaVersion := "2.12.8"
