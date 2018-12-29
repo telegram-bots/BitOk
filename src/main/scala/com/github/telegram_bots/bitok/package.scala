@@ -23,6 +23,7 @@ import com.bot4s.telegram.clients.ScalajHttpClient
 import com.bot4s.telegram.methods.{Request, SendMessage}
 import com.bot4s.telegram.models.Message
 import com.github.telegram_bots.bitok._
+import com.github.telegram_bots.bitok.logger.syntax._
 import io.chrisdavenport.log4cats.Logger
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.estatico.newtype.macros.newtype
@@ -143,28 +144,28 @@ sealed trait Extractors {
 
 sealed trait Implementation { self: Data with Extractors =>
   class Worker[F[_]: Sync](name: String, in: Queue[F, Job], out: Queue[F, Job]) {
-    val log: Logger[F] = Slf4jLogger.unsafeCreate[F].withModifiedString(s"[Worker][$name] " + _)
+    implicit val log: Logger[F] = Slf4jLogger.unsafeCreate[F].withModifiedString(s"[Worker][$name] " + _)
 
     def start(client: Client[F], parser: Parser[F]): F[Unit] =
       for {
-        _      <- log.info("Started")
+        _      <- info"Started"
         oldJob <- in.tryDequeue1
         _      <- oldJob.fold(Sync[F].unit) { job =>
           for {
             raw    <- client.load(job.txId)
             parsed <- parser.parse(raw)
-            _      <- log.warn(s"Unknown confirmations response: $parsed").whenA(parsed.isLeft)
+            _      <- warn"Unknown confirmations response: $parsed".whenA(parsed.isLeft)
             newJob <- Sync[F].delay(job.copy(
               lastRunAt = Instant.now.some,
               currentN = parsed.getOrElse(Confirmations.Unknown).repr
             ))
-            _      <- log.debug(s"Processing: $job <---> $newJob")
+            _      <- debug"Processing: $job <---> $newJob"
 
-            _ <- (out.enqueue1(newJob) *> log.debug(s"Out: $newJob")).whenA {
+            _ <- (out.enqueue1(newJob) *> debug"Out: $newJob").whenA {
               import newJob._
               currentN > job.currentN && (currentN % everyN == 0 || currentN >= untilN)
             }
-            _ <- (in.enqueue1(newJob) *> log.debug(s"In: $newJob")).whenA {
+            _ <- (in.enqueue1(newJob) *> debug"In: $newJob").whenA {
               newJob.currentN >= 0 && newJob.currentN < newJob.untilN
             }
           } yield ()
@@ -196,7 +197,7 @@ sealed trait Implementation { self: Data with Extractors =>
 
   class Bot[F[_]: ConcurrentEffect: ContextShift: Timer](val token: BotToken, in: Queue[F, Job], out: Queue[F, Job])
     extends TelegramBotF.Polling[F] {
-    val log: Logger[F] = Slf4jLogger.unsafeCreate[F].withModifiedString("[Bot] " + _)
+    implicit val log: Logger[F] = Slf4jLogger.unsafeCreate[F].withModifiedString("[Bot] " + _)
 
     def actions: List[Message => F[Unit]] = List({
       case JobE(chat, txId, untilN, everyN) => track(chat, txId, untilN, everyN)
@@ -206,7 +207,7 @@ sealed trait Implementation { self: Data with Extractors =>
     def track(chat: Chat, txId: TxId, untilN: Int, everyN: Int): F[Unit] =
       for {
         job <- Sync[F].delay(Job(chat, txId, None, 0, untilN, everyN))
-        _   <- log.debug(s"Add: $job")
+        _   <- debug"Add: $job"
         _   <- in.enqueue1(job)
         _   <- reply(chat, s"Added to tracking: $txId")
       } yield ()
@@ -214,7 +215,7 @@ sealed trait Implementation { self: Data with Extractors =>
     def notifyF: F[Unit] =
       for {
         job <- out.dequeue1
-        _   <- log.debug(s"Notify: $job")
+        _   <- debug"Notify: $job"
         _   <- reply(job.chat, job.currentN match {
           case n if n == Confirmations.Unknown.repr   => s"Failed to check TxId ${job.txId} for confirmations"
           case n if n == Confirmations.Confirmed.repr => s"TxId ${job.txId} is fully confirmed"
@@ -224,7 +225,7 @@ sealed trait Implementation { self: Data with Extractors =>
 
     def start: F[Fiber[F, Unit]] = Concurrent[F].start {
       for {
-        _ <- log.info("Started")
+        _ <- info"Started"
         _ <- runF.start
         _ <- (notifyF.start *> Timer[F].sleep(2.seconds)).foreverM[Unit]
       } yield ()
