@@ -37,16 +37,14 @@ trait StdLib extends Dependencies {
   object version {
     val newType         = "0.4.2"
     val enumeratum      = "1.5.13"
-    val shapeless       = "2.3.3"
     val java8Compat     = "0.9.0"
   }
 
   lazy val newType     = "io.estatico"            %% "newtype"            % version.newType
   lazy val enumeratum  = "com.beachape"           %% "enumeratum"         % version.enumeratum
   lazy val java8Compat = "org.scala-lang.modules" %% "scala-java8-compat" % version.java8Compat
-  lazy val shapeless   = "com.chuusai"            %% "shapeless"          % version.shapeless
 
-  lazy val apply      = Seq(newType, enumeratum, shapeless, java8Compat)
+  lazy val apply      = Seq(newType, enumeratum, java8Compat)
 }
 
 trait Compile extends Dependencies {
@@ -67,18 +65,20 @@ trait FP extends Dependencies {
   object version {
     val catsCore        = "1.5.0"
     val catsEffect      = "1.1.0"
-//    val catsTagless     = "0.2.0"
+    val catsTagless     = "0.2.0"
     val kittens         = "1.2.0"
     val mouse           = "0.20"
+    val shapeless       = "2.3.3"
   }
 
   lazy val catsCore      = "org.typelevel"        %% "cats-core"           % version.catsCore
   lazy val catsEffect    = "org.typelevel"        %% "cats-effect"         % version.catsEffect
-//  lazy val catsTagless   = "org.typelevel"        %% "cats-tagless-macros" % version.catsTagless
+  lazy val catsTagless   = "org.typelevel"        %% "cats-tagless-macros" % version.catsTagless
   lazy val kittens       = "org.typelevel"        %% "kittens"             % version.kittens
-  lazy val mouse         = "org.typelevel"        %% "mouse"                % version.mouse
+  lazy val mouse         = "org.typelevel"        %% "mouse"               % version.mouse
+  lazy val shapeless     = "com.chuusai"          %% "shapeless"           % version.shapeless
 
-  lazy val apply         = Seq(catsCore, catsEffect, kittens, mouse)
+  lazy val apply         = Seq(catsCore, catsEffect, kittens, mouse, shapeless)
 }
 
 trait Logging extends Dependencies {
